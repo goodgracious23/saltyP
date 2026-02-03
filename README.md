@@ -1,4 +1,4 @@
-## Code for manuscript *Salting my P"
+## Code for manuscript *Salting my P*
 
 ### How to reproduce figures and output statistics
 
