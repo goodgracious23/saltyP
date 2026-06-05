@@ -109,6 +109,19 @@ epc_comparison = left_join(epc, bottomSRP,
                                   levels = c("Initial Cl = 0", "Initial Cl = 50", 
                                              "Initial Cl = 100", "Initial Cl = 500")))
 
+epc_test = epc_comparison %>%
+  group_by(pond, season, bottomSRP, chloride) %>% 
+  summarise(slope = as.numeric(lm(epc ~ InitialCl)$coefficients[2]),
+            r2 = summary(lm(epc ~ InitialCl))$r.squared) %>%
+  ungroup()
+
+ggplot(epc_test, aes(x = chloride, y = slope)) + geom_point() + 
+  # scale_x_continuous(transform = "log10") + 
+  theme_bw() + 
+  facet_wrap(~season)
+
+median(epc_test$slope, na.rm = TRUE)
+
 gg_epc_minus_hypoSRP = 
   ggplot(epc_comparison, 
        aes(x = InitialCl, y = epc_effect, color = pond)) +
@@ -209,66 +222,42 @@ gg_epc_dic =
 ggarrange(gg_epc_chloride, gg_epc_srp, gg_epc_sulfate, gg_epc_pH, gg_epc_dic, 
           nrow = 5, legend = "right", common.legend = TRUE)
 
-
-# # # # FIGURE ==========================================
-# # # # Chloride exchange ===============================
-# combo = left_join(delta, epc, by = c("pond", "season", "InitialCl")) %>%
-#   filter(!is.na(deltaCl))
-#   # mutate(InitialCl = factor(InitialCl, levels = c("0", "50", "100", "500")))
-# # filter(!deltaCl > 2)
-# 
-# 
-# ## EPC vs Initial Chloride -- organized by pond, season = color
-# ggplot(combo, aes(x = deltaCl, y = epc, color = pond, shape = season, size = InitialCl)) +
-#   geom_point() +
-#   geom_polygon(aes(color = pond, fill = pond), alpha = 0.5) +
-#   scale_fill_manual(labels = c("Elver", "Lakeview", "Orchid",
-#                                 "Stricker's", "Tiedeman's",
-#                                 "Wingra, shallow", "Wingra, deep"),
-#                      values = c("#20753D", "#44AA99", "#48A0CC",
-#                                 "#D0BC5A", "#CC6677", "#A9539A", "#882255")) +
-#   scale_color_manual(values = c("#20753D", "#44AA99", "#48A0CC",
-#                                 "#D0BC5A", "#CC6677", "#A9539A", "#882255")) +
-#   theme_bw() + guides(color = FALSE) +
-#   xlab("Change in Chloride (mg Cl/g dry sediment)") +
-#   ylab("Equilibrium P Concentration (ug/L)") +
-#   # region of low P sorption, chloride sorbed or low exchange
-#   annotate(geom = "text", label = "1", x = -0.4, y = 70, color = "black", size = 6) +
-#   # region of high P sorption, chloride sorbed or low exchange
-#   annotate(geom = "text", label = "2", x = -0.4, y = 3, color = "black", size = 6) +
-#   # region of High P sorption, chloride release from sediments
-#   annotate(geom = "text", label = "3", x = 9.5, y = 3, color = "black", size = 6)
-# 
-# 
-
-
-epc_chloride_effect = epc %>%
+# Percent Change =======================================
+# Possibly the most convoluted way to calculate percent change in EPC
+# But this is what the pain brain produced
+epc_wide = epc %>%
   select(pond, season, InitialCl, epc) %>%
   pivot_wider(., names_from = "InitialCl", values_from = "epc") %>%
   rename(initial0 = `0`, initial50 = `50`, initial100 = `100`, initial500 = `500`) %>%
-  mutate(epc50_diff = initial50 - initial0,
-         epc100_diff = initial100 - initial0, 
-         epc500_diff = initial500 - initial0) %>%
-  left_join(., bottomSRP, by = c('pond', 'season')) 
-
-epc_diff = epc_chloride_effect %>% 
+  mutate(epc50_diff = (initial50 - initial0),
+         epc100_diff = (initial100 - initial0), 
+         epc500_diff = (initial500 - initial0)) %>%
   select(pond, season, epc50_diff:epc500_diff) %>%
   pivot_longer(., cols = epc50_diff:epc500_diff, names_to = "diff_category", values_to = "diff_value") %>%
-  mutate(diff_category = factor(case_when(diff_category == "epc50_diff" ~ "Diff in EPC at 50 mg/L Cl Added",
-                                          diff_category == "epc100_diff" ~ "Diff in EPC at 100 mg/L Cl Added",
-                                          diff_category == "epc500_diff" ~ "Diff in EPC at 500 mg/L Cl Added"),
-                                levels = c("Diff in EPC at 50 mg/L Cl Added", 
-                                           "Diff in EPC at 100 mg/L Cl Added", 
-                                           "Diff in EPC at 500 mg/L Cl Added")))
+  mutate(diff_category = factor(case_when(diff_category == "epc50_diff" ~ "50 mg/L Cl Added",
+                                          diff_category == "epc100_diff" ~ "100 mg/L Cl Added",
+                                          diff_category == "epc500_diff" ~ "500 mg/L Cl Added"),
+                                levels = c("50 mg/L Cl Added", 
+                                           "100 mg/L Cl Added", 
+                                           "500 mg/L Cl Added")))
 
+med_data = epc_wide %>% filter(diff_category == "500 mg/L Cl Added")
+median((med_data$diff_value), na.rm = TRUE)
 
-ggplot(epc_diff, aes(x = diff_value)) +
-  geom_histogram(aes(y = after_stat(density)), fill = "#DAA2CA") +
-  geom_density(linewidth = 1.5, color = "#9E4083") +
+ggplot(epc_wide, aes(x = diff_value, fill = pond)) +
+  geom_histogram(stat = "bin", binwidth = 5) + 
+  scale_fill_manual(
+    labels = c("Elver", "Lakeview", "Orchid", 
+               "Stricker's", "Tiedeman's", 
+               "Wingra, shallow", "Wingra, deep"),
+    values = c("#20753D", "#44AA99", 
+               "#48A0CC", "#D0BC5A", 
+               "#CC6677", "#A9539A", "#882255")) +
   facet_wrap(~ diff_category, scales = "free_y") +
   theme_bw() + 
   xlab("Difference in EPC (ug/L) from 0 mg/L Chloride Added Treatment") + 
-  geom_vline(xintercept = 0, linetype = "dashed", linewidth = 1)
+  geom_vline(xintercept = 0, linetype = "dashed") + 
+  ylim(0,5)
 
 
 
