@@ -85,7 +85,7 @@ gg_epc_season =
   theme_bw() +
   facet_wrap(~season) +
   theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "inches")) +
-  xlab("Chloride Added (mg/L)") + ylab('EPC (ug/L)') 
+  xlab("Chloride Added (mg/L)") + ylab('EPC (µg/L)') 
 
 
 ### Comparing Spring EPC to Bottom Water SRP
@@ -101,13 +101,13 @@ epc_comparison = left_join(epc, bottomSRP,
          pond = factor(pond, levels = c("elver", "lakeview", "orchid", 
                                         "strickers", "tiedemans", 
                                         "wingra shallow", "wingra deep")),
-         InitialCl_label = case_when(InitialCl == 0 ~ "Initial Cl = 0",
-                                     InitialCl == 50 ~ "Initial Cl = 50",
-                                     InitialCl == 100 ~ "Initial Cl = 100",
-                                     InitialCl == 500 ~ "Initial Cl = 500"),
+         InitialCl_label = case_when(InitialCl == 0 ~ "Initial Cl = 0 mg/L",
+                                     InitialCl == 50 ~ "Initial Cl = 50 mg/L",
+                                     InitialCl == 100 ~ "Initial Cl = 100 mg/L",
+                                     InitialCl == 500 ~ "Initial Cl = 500 mg/L"),
          InitialCl_label = factor(InitialCl_label, 
-                                  levels = c("Initial Cl = 0", "Initial Cl = 50", 
-                                             "Initial Cl = 100", "Initial Cl = 500")))
+                                  levels = c("Initial Cl = 0 mg/L", "Initial Cl = 50 mg/L", 
+                                             "Initial Cl = 100 mg/L", "Initial Cl = 500 mg/L")))
 
 epc_test = epc_comparison %>%
   group_by(pond, season, bottomSRP, chloride) %>% 
@@ -137,90 +137,38 @@ gg_epc_minus_hypoSRP =
   facet_wrap(facet = "season") +
   theme_bw() + theme(legend.title = element_blank()) +
   xlab("Chloride Added (mg/L)") + 
-  ylab("EPC – bottom SRP (ug/L)")
+  ylab("EPC – bottom SRP(µg/L)")
 
-ggsave("epc_season_vs_bottomSRP.pdf",
-  ggarrange(gg_epc_season, gg_epc_minus_hypoSRP, nrow = 2, align = "hv"), 
-  height = 4.4, width = 6.5, units = "in")
+ggarrange(gg_epc_season, gg_epc_minus_hypoSRP, nrow = 2, align = "hv")
+ggsave("figures/epc_season_vs_bottomSRP.pdf", height = 4.4, width = 6.5, units = "in")
+ggsave("figures/epc_season_vs_bottomSRP.png", height = 4.4, width = 6.5, units = "in", dpi = 500)
 
-# =====================================
-gg_epc_chloride = 
+
+# ================= Compare to ambient water quality ====================
+plot_epc <- function(x, xlab) {
   ggplot(epc_comparison, 
-       aes(x = chloride, y = epc)) + 
-  geom_point(size = 3, alpha = 0.7, aes(color = pond, shape = season)) + 
-  scale_color_manual(
-    labels = c("Elver", "Lakeview", "Orchid", 
-               "Stricker's", "Tiedeman's", 
-               "Wingra, shallow", "Wingra, deep"),
-    values = c("#20753D", "#44AA99", 
-               "#48A0CC", "#D0BC5A", 
-               "#CC6677", "#A9539A", "#882255")) +
-  facet_wrap(~InitialCl_label, nrow = 1) +
-  theme_bw() + 
-  ylab("EPC") + xlab("Chloride at Time of Sampling (mg/L)") 
+         aes(x = {{x}}, y = epc)) + 
+    geom_point(aes(color = pond, shape = season), size = 3, alpha = 0.7) + 
+    scale_color_manual(
+      labels = c("Elver", "Lakeview", "Orchid", 
+                 "Stricker's", "Tiedeman's", 
+                 "Wingra, shallow", "Wingra, deep"),
+      values = c("#20753D", "#44AA99", 
+                 "#48A0CC", "#D0BC5A", 
+                 "#CC6677", "#A9539A", "#882255")) +
+    facet_wrap(~InitialCl_label, nrow = 1) +
+    theme_bw(base_size = 9) + 
+    ylab("EPC (µg/L)") + xlab(xlab)
+}
 
-gg_epc_srp = 
-  ggplot(epc_comparison, 
-         aes(x = bottomSRP, y = epc)) + 
-  geom_point(size = 3, alpha = 0.7, aes(color = pond, shape = season)) + 
-  scale_color_manual(
-    labels = c("Elver", "Lakeview", "Orchid", 
-               "Stricker's", "Tiedeman's", 
-               "Wingra, shallow", "Wingra, deep"),
-    values = c("#20753D", "#44AA99", 
-               "#48A0CC", "#D0BC5A", 
-               "#CC6677", "#A9539A", "#882255")) +
-  facet_wrap(~InitialCl_label, nrow = 1) +
-  theme_bw() + 
-  ylab("EPC") + xlab("SRP at Time of Sampling (ug/L)")
-
-gg_epc_sulfate = 
-  ggplot(epc_comparison, 
-         aes(x = sulfate, y = epc)) + 
-  geom_point(size = 3, alpha = 0.7, aes(color = pond, shape = season)) + 
-  scale_color_manual(
-    labels = c("Elver", "Lakeview", "Orchid", 
-               "Stricker's", "Tiedeman's", 
-               "Wingra, shallow", "Wingra, deep"),
-    values = c("#20753D", "#44AA99", 
-               "#48A0CC", "#D0BC5A", 
-               "#CC6677", "#A9539A", "#882255")) +
-  facet_wrap(~InitialCl_label, nrow = 1) +
-  theme_bw() + 
-  ylab("EPC") + xlab("Sulfate at Time of Sampling (mg/L)")
-
-gg_epc_pH = 
-  ggplot(epc_comparison, 
-         aes(x = pH, y = epc)) + 
-  geom_point(size = 3, alpha = 0.7, aes(color = pond, shape = season)) + 
-  scale_color_manual(
-    labels = c("Elver", "Lakeview", "Orchid", 
-               "Stricker's", "Tiedeman's", 
-               "Wingra, shallow", "Wingra, deep"),
-    values = c("#20753D", "#44AA99", 
-               "#48A0CC", "#D0BC5A", 
-               "#CC6677", "#A9539A", "#882255")) +
-  facet_wrap(~InitialCl_label, nrow = 1) +
-  theme_bw() + 
-  ylab("EPC") + xlab("pH at Time of Sampling")
-
-gg_epc_dic = 
-  ggplot(epc_comparison, 
-         aes(x = dic, y = epc)) + 
-  geom_point(size = 3, alpha = 0.7, aes(color = pond, shape = season)) + 
-  scale_color_manual(
-    labels = c("Elver", "Lakeview", "Orchid", 
-               "Stricker's", "Tiedeman's", 
-               "Wingra, shallow", "Wingra, deep"),
-    values = c("#20753D", "#44AA99", 
-               "#48A0CC", "#D0BC5A", 
-               "#CC6677", "#A9539A", "#882255")) +
-  facet_wrap(~InitialCl_label, nrow = 1) +
-  theme_bw() + 
-  ylab("EPC") + xlab("Dissolved Inorganic C at Time of Sampling (mg/L)")
-
+gg_epc_chloride = plot_epc(x = chloride, xlab = "Chloride at time of sampling (mg/L)")
+gg_epc_srp = plot_epc(x = bottomSRP, xlab = "SRP at time of sampling (µg/L)")
+gg_epc_sulfate = plot_epc(x = sulfate, xlab = "Chloride at time of sampling (mg/L)")
+gg_epc_pH = plot_epc(x = pH, xlab = "pH at Time of Sampling")
+gg_epc_dic = plot_epc(x = dic, xlab = "Dissolved inorganic carbon at time of sampling (mg/L)")
 ggarrange(gg_epc_chloride, gg_epc_srp, gg_epc_sulfate, gg_epc_pH, gg_epc_dic, 
           nrow = 5, legend = "right", common.legend = TRUE)
+ggsave('figures/chem_vs_epc_scatterplots.png', width = 6.6, height = 8, dpi = 500, bg = 'white')
 
 # Percent Change =======================================
 # Possibly the most convoluted way to calculate percent change in EPC
