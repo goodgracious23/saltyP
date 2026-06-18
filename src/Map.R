@@ -6,7 +6,7 @@ library(ggspatial)
 library(tidyverse)
 
 # DC land use
-DCland = st_read('data_GIS/DaneCounty/LandUse2020/LandUse2020.shp')
+DCland = st_read('data_GIS/DaneCounty/LandUse2020/LandUse2020_crop.shp')
 # Load lakes
 DClakes = st_read('data_GIS/DaneCounty/LakesPonds/LakesPonds_wID.shp') |> 
   filter(ID %in% c(652, 641, 4267, 4266, 2718, 3964, 3910)) |> 
