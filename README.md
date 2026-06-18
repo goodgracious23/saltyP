@@ -3,6 +3,7 @@
 This repository contains the code and data to reproduce figures and output statistics for the report submitted to *Limnology and Oceanography*.
 
 **Authors:** Grace M. Wilkinson, Adrianna M. Gorsky, Ellen Albright, Jessica Briggs, Charles E. Dougherty, Helen Schlimm, James Sustachek, Hilary A. Dugan
+
 **Affiliation:** Center for Limnology, University of Wisconsin–Madison, Madison, 53706 WI, US
 
 ## How to reproduce figures and output statistics
