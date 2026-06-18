@@ -3,7 +3,7 @@
 library(tidyverse)
 library(ggpubr)
 
-raw <- read_csv("saltyP_allData_allSeasons_final.csv") 
+raw <- read_csv("data/saltyP_allData_allSeasons_final.csv") 
 
 # REASSEMBLE THE DATA FRAME, CALCULATE P MASS
 delta = raw %>%
@@ -89,7 +89,7 @@ gg_epc_season =
 
 
 ### Comparing Spring EPC to Bottom Water SRP
-bottomSRP = read_csv("epc_coordinates.csv")
+bottomSRP = read_csv("data/epc_coordinates.csv")
 
 epc_comparison = left_join(epc, bottomSRP, 
                            by = c("pond", "season")) %>%
