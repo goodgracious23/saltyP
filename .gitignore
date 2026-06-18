@@ -1,0 +1,7 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+**.DS_Store
+data_GIS/.DS_Store
+data_GIS/DaneCounty/LandUse2020/Original
