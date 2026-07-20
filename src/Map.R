@@ -17,6 +17,14 @@ DClakes_centroid = DClakes |>
   filter(ID != 4266) |> 
   st_centroid()
 
+# Lake Wingra sampling points 
+# Create the points (lon, lat)
+wingra_pts <- data.frame(lon = c(-89.42865, -89.42500),
+  lat = c(43.05344, 43.05300))
+
+wingra_pts_sf <- st_as_sf(wingra_pts, coords = c("lon", "lat"), crs = 4326) |> 
+  st_transform(st_crs(DCland))
+
 # Load watersheds, transform CRS
 wingraWS = st_read('data_GIS/YaharaBasins/Wingra_Basin.shp') |> 
   st_transform(st_crs(DCland))
@@ -112,8 +120,9 @@ ggplot(DCland_dissolved) +
   annotate(geom = "segment", x = 788960, y = 469485.4, xend = 791000, yend = 467000, linewidth = 0.3) + #Elver
   annotate(geom = "segment", x = 789112.8, y = 488570.5, xend = 797000, yend = 488570.5, linewidth = 0.3) + #Tiedman
   
+  geom_sf(data = wingra_pts_sf, color = "black", size = 1.5, shape = 18) + #wingra points
   
-  scale_x_continuous(breaks = scales::pretty_breaks(n = 4)) +
+  # scale_x_continuous(breaks = scales::pretty_breaks(n = 4)) +
   coord_sf(expand = FALSE) +
   annotation_scale(location = "tr", width_hint = 0.3, height = unit(0.1, "cm")) +  # Adds scale bar
   theme_bw(base_size = 10) +
