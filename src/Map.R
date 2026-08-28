@@ -4,6 +4,12 @@ library(tmap)     # For map visualization
 library(FedData)
 library(ggspatial)
 library(tidyverse)
+library(maps)
+library(cowplot)
+
+
+## ---- Prettier inset ----
+source('src/USinset.r')
 
 # DC land use
 DCland = st_read('data_GIS/DaneCounty/LandUse2020/LandUse2020_crop.shp')
@@ -91,7 +97,7 @@ landuse_colors <- c(
 cropped_landuseWI <- st_intersection(DCland_dissolved, WS)
 
 # Final plot
-ggplot(DCland_dissolved) +
+p = ggplot(DCland_dissolved) +
   geom_sf(aes(fill = GENERALIZE), color = NA, alpha = 0.3) +
 
   geom_sf(data = cropped_landuseWI, aes(fill = GENERALIZE), color = NA) +
@@ -130,9 +136,38 @@ ggplot(DCland_dissolved) +
         legend.title = element_text(size = 7),
         legend.key.height = unit(0.4,'cm'),
         # legend.position = 'bottom',
-        axis.title = element_blank())
+        axis.title = element_blank()); p
 
 ggsave('figures/Map_2023.png', width = 6, height = 4, dpi = 500)
+
+
+# Combine with inset
+## ---- Main map, no legend baked in ----
+p_map <- p + theme(legend.position = "none")
+## ---- Pull the legend out on its own ----
+p_legend <- get_legend(
+  p + theme(
+    legend.box.margin = margin(0, 0, 0, 0),
+    legend.text  = element_text(size = 7),
+    legend.title = element_text(size = 7.5, face = "bold"),
+    legend.key.height = unit(0.4, "cm")))
+
+## ---- Right column: inset stacked above the legend ----
+right_col <- plot_grid(
+  us_inset, p_legend,
+  ncol = 1, rel_heights = c(0.38, 0.62),
+  align = "v")
+
+## ---- Combine: map on the left, inset+legend column on the right ----
+final_map <- plot_grid(
+  p_map, right_col,
+  ncol = 2, rel_widths = c(3.4, 1.2)
+)
+
+final_map
+
+ggsave('figures/Map_2023_inset.png', final_map, width = 6.5, height = 4.5, dpi = 500, bg = 'white')
+
 
 #  # Land use stats 
 # landuse_merge %>% ungroup() %>% 

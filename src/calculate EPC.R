@@ -2,6 +2,7 @@
 # G. Wilkinson, code adapted from E. Albright
 library(tidyverse)
 library(ggpubr)
+library(patchwork)
 
 raw <- read_csv("data/saltyP_allData_allSeasons_final.csv") 
 
@@ -122,6 +123,7 @@ ggplot(epc_test, aes(x = chloride, y = slope)) + geom_point() +
 
 median(epc_test$slope, na.rm = TRUE)
 
+# Plot
 gg_epc_minus_hypoSRP = 
   ggplot(epc_comparison, 
        aes(x = InitialCl, y = epc_effect, color = pond)) +
@@ -131,15 +133,26 @@ gg_epc_minus_hypoSRP =
                                 "Wingra, shallow", "Wingra, deep"),
                      values = c("#20753D", "#44AA99", "#48A0CC", 
                                 "#D0BC5A", "#CC6677", "#A9539A", "#882255")) +
-  geom_hline(yintercept = 0, 
-             linetype = 'dashed', 
-             linewidth = 0.75) +
+  geom_hline(yintercept = 0, linetype = 'dashed', linewidth = 0.75, color = 'grey50') +
+  # annotate("text", x = 5, y = 25, label = "source↑", 
+  #          color = "grey50", fontface = "bold", size = 4, hjust = 0) +
+  geom_text(data = data.frame(season = "Fall 2022", x = 500, y = 10, label = "source↑"), 
+            aes(x, y, label = label), inherit.aes = FALSE, hjust = 1, color = "grey50", 
+            fontface = "bold", size = 4) +
+  geom_text(data = data.frame(season = "Fall 2022", x = 500, y = -20, label = "sink↓"), 
+            aes(x, y, label = label), inherit.aes = FALSE, hjust = 1, color = "grey50", 
+            fontface = "bold", size = 4) +
   facet_wrap(facet = "season") +
-  theme_bw() + theme(legend.title = element_blank()) +
+  theme_bw() + 
+  # theme(legend.title = element_blank()) +
   xlab("Chloride Added (mg/L)") + 
-  ylab("EPC – bottom SRP(µg/L)")
+  ylab("EPC – bottom SRP(µg/L)"); gg_epc_minus_hypoSRP
 
-ggarrange(gg_epc_season, gg_epc_minus_hypoSRP, nrow = 2, align = "hv")
+# ggarrange(gg_epc_season, gg_epc_minus_hypoSRP, nrow = 2, align = "hv")
+gg_epc_season/gg_epc_minus_hypoSRP + plot_layout(guides = 'collect') +
+  plot_annotation(tag_levels = 'A', tag_suffix = '.') &
+  theme(plot.tag = element_text(size = 8))
+
 ggsave("figures/epc_season_vs_bottomSRP.pdf", height = 4.4, width = 6.5, units = "in")
 ggsave("figures/epc_season_vs_bottomSRP.png", height = 4.4, width = 6.5, units = "in", dpi = 500)
 
