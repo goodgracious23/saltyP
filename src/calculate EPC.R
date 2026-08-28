@@ -151,7 +151,8 @@ gg_epc_minus_hypoSRP =
 # ggarrange(gg_epc_season, gg_epc_minus_hypoSRP, nrow = 2, align = "hv")
 gg_epc_season/gg_epc_minus_hypoSRP + plot_layout(guides = 'collect') +
   plot_annotation(tag_levels = 'A', tag_suffix = '.') &
-  theme(plot.tag = element_text(size = 8))
+  theme(plot.tag = element_text(size = 8), legend.margin = margin(0, 0, 0, 0), 
+        plot.margin = margin(1,1,1,1))
 
 ggsave("figures/epc_season_vs_bottomSRP.pdf", height = 4.4, width = 6.5, units = "in")
 ggsave("figures/epc_season_vs_bottomSRP.png", height = 4.4, width = 6.5, units = "in", dpi = 500)
