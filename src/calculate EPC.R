@@ -83,10 +83,11 @@ gg_epc_season =
                      values = c("#20753D", "#44AA99", "#48A0CC", 
                                 "#D0BC5A", "#CC6677", "#A9539A", "#882255")) +
   # scale_y_continuous(transform = "log10") +
-  theme_bw() +
+  theme_bw(base_size = 9) +
   facet_wrap(~season) +
   theme(plot.margin = unit(c(0.1,0.1,0.1,0.1), "inches")) +
-  xlab("Chloride Added (mg/L)") + ylab('EPC (µg/L)') 
+  xlab(expression("Chloride Added (mg L"^-1*")")) +
+  ylab(expression("EPC ("*mu*"g L"^-1*")"))
 
 
 ### Comparing Spring EPC to Bottom Water SRP
@@ -102,13 +103,23 @@ epc_comparison = left_join(epc, bottomSRP,
          pond = factor(pond, levels = c("elver", "lakeview", "orchid", 
                                         "strickers", "tiedemans", 
                                         "wingra shallow", "wingra deep")),
-         InitialCl_label = case_when(InitialCl == 0 ~ "Initial Cl = 0 mg/L",
-                                     InitialCl == 50 ~ "Initial Cl = 50 mg/L",
-                                     InitialCl == 100 ~ "Initial Cl = 100 mg/L",
-                                     InitialCl == 500 ~ "Initial Cl = 500 mg/L"),
-         InitialCl_label = factor(InitialCl_label, 
-                                  levels = c("Initial Cl = 0 mg/L", "Initial Cl = 50 mg/L", 
-                                             "Initial Cl = 100 mg/L", "Initial Cl = 500 mg/L")))
+         # InitialCl_label = case_when(InitialCl == 0 ~ "Initial Cl = 0 mg/L",
+         #                             InitialCl == 50 ~ "Initial Cl = 50 mg/L",
+         #                             InitialCl == 100 ~ "Initial Cl = 100 mg/L",
+         #                             InitialCl == 500 ~ "Initial Cl = 500 mg/L"),
+         InitialCl_label = factor(case_when(
+                       InitialCl == 0   ~ "'Initial Cl = 0'~mg~L^{-1}",
+                       InitialCl == 50  ~ "'Initial Cl = 50'~mg~L^{-1}",
+                       InitialCl == 100 ~ "'Initial Cl = 100'~mg~L^{-1}",
+                       InitialCl == 500 ~ "'Initial Cl = 500'~mg~L^{-1}"),
+           levels = c("'Initial Cl = 0'~mg~L^{-1}",
+                     "'Initial Cl = 50'~mg~L^{-1}",
+                     "'Initial Cl = 100'~mg~L^{-1}",
+                     "'Initial Cl = 500'~mg~L^{-1}")))
+         
+         # InitialCl_label = factor(InitialCl_label, 
+         #                          levels = c("Initial Cl = 0 mg/L", "Initial Cl = 50 mg/L", 
+         #                                     "Initial Cl = 100 mg/L", "Initial Cl = 500 mg/L")))
 
 epc_test = epc_comparison %>%
   group_by(pond, season, bottomSRP, chloride) %>% 
@@ -143,10 +154,10 @@ gg_epc_minus_hypoSRP =
             aes(x, y, label = label), inherit.aes = FALSE, hjust = 1, color = "grey50", 
             fontface = "bold", size = 4) +
   facet_wrap(facet = "season") +
-  theme_bw() + 
+  theme_bw(base_size = 9) + 
   # theme(legend.title = element_blank()) +
-  xlab("Chloride Added (mg/L)") + 
-  ylab("EPC – bottom SRP(µg/L)"); gg_epc_minus_hypoSRP
+  xlab(expression("Chloride Added (mg L"^-1*")")) +
+  ylab(expression("EPC – bottom SRP ("*mu*"g L"^-1*")")); gg_epc_minus_hypoSRP
 
 # ggarrange(gg_epc_season, gg_epc_minus_hypoSRP, nrow = 2, align = "hv")
 gg_epc_season/gg_epc_minus_hypoSRP + plot_layout(guides = 'collect') +
@@ -170,16 +181,24 @@ plot_epc <- function(x, xlab) {
       values = c("#20753D", "#44AA99", 
                  "#48A0CC", "#D0BC5A", 
                  "#CC6677", "#A9539A", "#882255")) +
-    facet_wrap(~InitialCl_label, nrow = 1) +
+    # facet_wrap(~InitialCl_label, nrow = 1) +
+    facet_wrap(~InitialCl_label, labeller = label_parsed, nrow = 1) +
     theme_bw(base_size = 9) + 
-    ylab("EPC (µg/L)") + xlab(xlab)
+    ylab(expression("EPC ("*mu*"g L"^-1*")")) + 
+    xlab(xlab)
 }
 
-gg_epc_chloride = plot_epc(x = chloride, xlab = "Chloride at time of sampling (mg/L)")
-gg_epc_srp = plot_epc(x = bottomSRP, xlab = "SRP at time of sampling (µg/L)")
-gg_epc_sulfate = plot_epc(x = sulfate, xlab = "Chloride at time of sampling (mg/L)")
-gg_epc_pH = plot_epc(x = pH, xlab = "pH at Time of Sampling")
-gg_epc_dic = plot_epc(x = dic, xlab = "Dissolved inorganic carbon at time of sampling (mg/L)")
+# gg_epc_chloride = plot_epc(x = chloride, xlab = "Chloride at time of sampling (mg/L)")
+# gg_epc_srp = plot_epc(x = bottomSRP, xlab = "SRP at time of sampling (µg/L)")
+# gg_epc_sulfate = plot_epc(x = sulfate, xlab = "Chloride at time of sampling (mg/L)")
+# gg_epc_pH = plot_epc(x = pH, xlab = "pH at Time of Sampling")
+# gg_epc_dic = plot_epc(x = dic, xlab = "Dissolved inorganic carbon at time of sampling (mg/L)")
+gg_epc_chloride = plot_epc(x = chloride, xlab = expression("Chloride at time of sampling (mg L"^-1*")"))
+gg_epc_srp      = plot_epc(x = bottomSRP, xlab = expression("SRP at time of sampling ("*mu*"g L"^-1*")"))
+gg_epc_sulfate  = plot_epc(x = sulfate, xlab = expression("Sulfate at time of sampling (mg L"^-1*")"))
+gg_epc_pH       = plot_epc(x = pH, xlab = "pH at time of sampling")
+gg_epc_dic      = plot_epc(x = dic, xlab = expression("Dissolved inorganic carbon at time of sampling (mg L"^-1*")"))
+
 ggarrange(gg_epc_chloride, gg_epc_srp, gg_epc_sulfate, gg_epc_pH, gg_epc_dic, 
           nrow = 5, legend = "right", common.legend = TRUE)
 ggsave('figures/chem_vs_epc_scatterplots.png', width = 6.6, height = 8, dpi = 500, bg = 'white')
@@ -196,12 +215,20 @@ epc_wide = epc %>%
          epc500_diff = (initial500 - initial0)) %>%
   select(pond, season, epc50_diff:epc500_diff) %>%
   pivot_longer(., cols = epc50_diff:epc500_diff, names_to = "diff_category", values_to = "diff_value") %>%
-  mutate(diff_category = factor(case_when(diff_category == "epc50_diff" ~ "50 mg/L Cl Added",
-                                          diff_category == "epc100_diff" ~ "100 mg/L Cl Added",
-                                          diff_category == "epc500_diff" ~ "500 mg/L Cl Added"),
-                                levels = c("50 mg/L Cl Added", 
-                                           "100 mg/L Cl Added", 
-                                           "500 mg/L Cl Added")))
+  mutate(diff_category = factor(case_when(
+    diff_category == "epc50_diff"  ~ "50~mg~L^{-1}~Cl~Added",
+    diff_category == "epc100_diff" ~ "100~mg~L^{-1}~Cl~Added",
+    diff_category == "epc500_diff" ~ "500~mg~L^{-1}~Cl~Added"), 
+    levels = c(
+    "50~mg~L^{-1}~Cl~Added",
+    "100~mg~L^{-1}~Cl~Added",
+    "500~mg~L^{-1}~Cl~Added")))
+  # mutate(diff_category = factor(case_when(diff_category == "epc50_diff" ~ "50 mg/L Cl Added",
+  #                                         diff_category == "epc100_diff" ~ "100 mg/L Cl Added",
+  #                                         diff_category == "epc500_diff" ~ "500 mg/L Cl Added"),
+  #                               levels = c("50 mg/L Cl Added", 
+  #                                          "100 mg/L Cl Added", 
+  #                                          "500 mg/L Cl Added")))
 
 med_data = epc_wide %>% filter(diff_category == "500 mg/L Cl Added")
 median((med_data$diff_value), na.rm = TRUE)
@@ -215,11 +242,18 @@ ggplot(epc_wide, aes(x = diff_value, fill = pond)) +
     values = c("#20753D", "#44AA99", 
                "#48A0CC", "#D0BC5A", 
                "#CC6677", "#A9539A", "#882255")) +
-  facet_wrap(~ diff_category, scales = "free_y") +
-  theme_bw() + 
-  xlab("Difference in EPC (ug/L) from 0 mg/L Chloride Added Treatment") + 
+  facet_wrap(~diff_category, labeller = label_parsed, scales = "free_y") +
+  # facet_wrap(~ diff_category, scales = "free_y") +
+  ylab('Count') +
+  xlab(expression("Difference in EPC ("*mu*"g L"^-1*") from 0 mg L"^-1*" Chloride Added Treatment")) +
+  # xlab("Difference in EPC (ug/L) from 0 mg/L Chloride Added Treatment") + 
   geom_vline(xintercept = 0, linetype = "dashed") + 
-  ylim(0,5)
+  ylim(0,5) +
+  theme_bw(base_size = 9) + 
+  theme(legend.title = element_blank(), 
+        legend.key.size = unit(0.4,'cm'))
 
 
+ggsave('figures/epc_diff_from_zeroCl.png', width = 6.6, height = 2, dpi = 500, bg = 'white')
+ggsave('figures/epc_diff_from_zeroCl.pdf', width = 6.6, height = 3.5, dpi = 500, bg = 'white')
 
